@@ -94,7 +94,7 @@ sure it looks nice.
 
 ## The Data
 
-The `teacher_evals` dataset contains student evaluations of reaching (SET)
+The `teacher_evals` dataset contains student evaluations of teaching (SET)
 collected from students at a University in Poland. There are SET surveys from 
 students in all fields and all levels of study offered by the university.
 
@@ -156,7 +156,7 @@ included in the `teacher_evals_codebook.pdf`.
 ```{r}
 #| label: setup
 # code chunk for loading packages
-
+library(tidyverse)
 ```
 
 **2. Load in the `teacher_evals` data.** 
@@ -164,25 +164,30 @@ included in the `teacher_evals_codebook.pdf`.
 ```{r}
 #| label: load-data
 # code chunk for importing the data
-
+teacher_evals <- read_csv("data-raw/teacher_evals.csv")
+head(teacher_evals)
 ```
 
 ### Data Inspection + Summary
 
 **3. Provide a brief overview (~4 sentences) of the dataset.**
 
+> The dataset is from surveys of students who attend a university in Poland. It is made of average teacher evaluation scores from those students, as well as general characteristics of each class and teacher being evaluated. This broad availability of data allows us to perfom many kinds of analyses.
+
 ```{r}
 #| label: explore-data
 # you may want to use code to answer this question
-
+names(teacher_evals)
 ```
 
 **4. What is the unit of observation (i.e. a single row in the dataset) identified by?**
 
+> One row in this data is unique to one semester's worth of evaluations, per teacher, per course.
+
 ```{r}
 #| label: row-identification
 # you may want to use code to answer this question
-
+unique(teacher_evals)
 ```
 
 **5. Use _one_ `dplyr` pipeline to clean the data by:**
@@ -197,32 +202,65 @@ included in the `teacher_evals_codebook.pdf`.
 ```{r}
 #| label: data-cleaning
 # code chunk for Q4
+teacher_evals_clean <- teacher_evals %>% 
+  rename(sex = gender) %>% 
+  filter(no_participants >= 10) %>% 
+  mutate(teacher_id = as.character(teacher_id)) %>% 
+  select(course_id, teacher_id, question_no, no_participants, resp_share, SET_score_avg, percent_failed_cur, academic_degree, seniority, sex)
 
+write_csv(teacher_evals_clean, "data-clean/teacher_evals_clean.csv")
 ```
 
 **6. How many unique instructors and unique courses are present in the cleaned dataset?**
 
+> There are 939 distinct courses, and 297 distinct instructors.
+
 ```{r}
 #| label: unique-courses
 # code chunk for Q5
+teacher_evals_clean %>% 
+  distinct(course_id) %>% 
+  nrow()
+```
 
+```{r}
+teacher_evals_clean %>% 
+  distinct(teacher_id) %>% 
+  nrow()
 ```
 
 **7. One teacher-course combination has some missing values, coded as `NA`. Which instructor has these missing values? Which course? What variable are the missing values in?**
 
+>Instructor 56347 for course PAB3SE004PA has NA's for the percent of students which failed the course this semester.
+
 ```{r}
 #| label: uncovering-missing-values
 # code chunk for Q6
-
+teacher_evals_clean %>% 
+  filter_all(any_vars(is.na(.)))
 ```
 
 **8. What are the demographics of the instructors in this study? Investigate the variables `academic_degree`, `seniority`, and `sex` and summarize your findings in ~3 complete sentences.**
 
+> On average, men have a 8-month longer seniority than women at this university. Additionally, while there are approximately the same number of male and female instructors at this university, there are more male instructors who are professors or have a doctorate than female instructors with the same position/qualifications. Finally, there are approximately the same number of male and female instructors with either a masters degree or no degree.
+
 ```{r}
 #| label: exploring-demographics-of-instructors
 # code chunk for Q7
-
+teacher_evals_clean %>% 
+  distinct(teacher_id, .keep_all = TRUE) %>% 
+  select(academic_degree, seniority, sex) %>% 
+  group_by(sex) %>% 
+  summarize(avg = mean(seniority))
 ```
+```{r}
+teacher_evals_clean %>% 
+  distinct(teacher_id, .keep_all = TRUE) %>% 
+  select(academic_degree, seniority, sex) %>% 
+  group_by(academic_degree, sex) %>% 
+  count()
+```
+
 
 **9. Each course seems to have used a different subset of the nine evaluation questions. How many teacher-course combinations asked all nine questions?**
 
