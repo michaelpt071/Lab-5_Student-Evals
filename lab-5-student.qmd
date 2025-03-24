@@ -264,34 +264,84 @@ teacher_evals_clean %>%
 
 **9. Each course seems to have used a different subset of the nine evaluation questions. How many teacher-course combinations asked all nine questions?**
 
+> 49 teacher-course combinations asked all nine questions.
+
 ```{r}
 #| label: teacher-course-asked-every-question
 # code chunk for Q8
-
+teacher_evals_clean %>% 
+  group_by(course_id, teacher_id) %>% 
+  count() %>% 
+  filter(n == 9) %>% 
+  nrow()
 ```
 
 ## Rate my Professor
 
 **10. Which instructors had the highest and lowest average rating for Question 1 (I learnt a lot during the course.) across all their courses?**
 
+> Of the 267 teachers that used the question, 129 teachers recieved a 5.0 average score for question 1. Only 3 of those 267 teachers recieved an average score less than 3.0.
+
 ```{r}
 #| label: question-1-high-low
 # code chunk for Q9
-
+teacher_evals_clean %>% 
+  filter(question_no == 901) %>% 
+  distinct(teacher_id, .keep_all = TRUE) %>% 
+  select(teacher_id, SET_score_avg) %>% 
+  arrange(desc(SET_score_avg)) %>% 
+ggplot(aes(x = SET_score_avg)) +
+  geom_boxplot() +
+  theme_light() +
+  labs(
+    x = "SET Score Average",
+    y = "") +
+    theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
 ```
 
 **11. Which instructors with one year of experience had the highest and lowest average percentage of students failing in the current semester across all their courses?**
 
+> Instructors 104362 and 106692 had the highest percent of failing students, with 74.5% and 68%, respectively. Only 7 instructors with 1 year of seniority have no failing students.
+
 ```{r}
 #| label: one-year-experience-failing-students
 # code chunk for Q10
-
+teacher_evals_clean %>% 
+  distinct(teacher_id, .keep_all = TRUE) %>% 
+  filter(seniority == 1) %>% 
+  select(teacher_id, percent_failed_cur) %>% 
+  arrange(desc(percent_failed_cur)) %>% 
+ggplot(aes(x = percent_failed_cur)) +
+  geom_boxplot() +
+  theme_light() +
+  labs(x = "Percent of Students Failing Curriculum",
+    y = "") +
+    theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
 ```
 
 **12. Which female instructors with either a doctorate or professional degree had the highest and lowest average percent of students responding to the evaluation across all their courses?**
 
+> Instructor 101508 had the highest proportion of students responding to the evaluation across all their courses, with over half of their students responding. 13 female instructors with either a doctorate or professional degree had less than 5% of students respond.
+
 ```{r}
 #| label: female-instructor-student-response
 # code chunk for Q11
-
+teacher_evals_clean %>% 
+  distinct(teacher_id, .keep_all = TRUE) %>% 
+  filter(sex == "female") %>% 
+  filter(academic_degree == "dr" | academic_degree == "prof") %>% 
+  select(teacher_id, academic_degree, sex, resp_share) %>% 
+  arrange((resp_share)) %>% 
+ggplot(aes(x = resp_share)) +
+  geom_boxplot() +
+  theme_light() +
+  labs(x = "Percent of Students Responding to Evaluation",
+    y = "") +
+    theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
 ```

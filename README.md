@@ -6,3 +6,5 @@ Lab 5: Student Evaluations of Teaching
 2. completed through q4
 
 3. completed through q8
+
+4. completed lab
